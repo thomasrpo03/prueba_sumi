@@ -6,109 +6,114 @@ use App\Models\Task;
 use App\Models\TaskStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
-
     public function index()
     {
-        $title = 'Mis Tareas ';
-        // Traer todas las tareas propias del usuario que están activas
-        $tasks = Task::whereUserId(auth()->id())
-            ->where('is_active', true)
-            ->latest()
-            ->paginate(5);
-        return view('tasks.index', compact('tasks', 'title'));
+        try {
+            $title = 'Mis Tareas ';
+            $tasks = Task::whereUserId(auth()->id())
+                ->where('is_active', true)
+                ->latest()
+                ->paginate(5);
+            return view('tasks.index', compact('tasks', 'title'));
+        } catch (\Exception $e) {
+            Log::error('Error al obtener las tareas: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al obtener las tareas.');
+        }
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $title = 'Nueva Tarea ';
-        $statuses = TaskStatus::all();
-        return view('tasks.create', compact('title', 'statuses'));
+        try {
+            $title = 'Nueva Tarea ';
+            $statuses = TaskStatus::all();
+            return view('tasks.create', compact('title', 'statuses'));
+        } catch (\Exception $e) {
+            Log::error('Error al cargar el formulario de creación de tareas: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al cargar el formulario.');
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request): RedirectResponse
     {
-        // Validaciones para la creación de una tarea
-        $validated = $request->validate([
-            'title' => 'required|string|min:3|max:255',
-            'body' => 'required|string|min:5|max:255',
-            'task_status_id' => 'required|exists:task_statuses,id',
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|min:3|max:255',
+                'body' => 'required|string|min:5|max:255',
+                'task_status_id' => 'required|exists:task_statuses,id',
+            ]);
 
-        $request->user()->tasks()->create($validated);
+            $request->user()->tasks()->create($validated);
 
-        return redirect()->route('tasks.index')->with('success', 'Tarea creada con éxito');
-        // dd('Tarea creada', $validated);
+            return redirect()->route('tasks.index')->with('success', 'Tarea creada con éxito');
+        } catch (\Exception $e) {
+            Log::error('Error al crear tarea: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al crear la tarea.');
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Task $task)
     {
-        $title = 'Ver Tarea ';
-        return view('tasks.show', compact('task', 'title'));
+        try {
+            $title = 'Ver Tarea ';
+            return view('tasks.show', compact('task', 'title'));
+        } catch (\Exception $e) {
+            Log::error('Error al mostrar la tarea: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al mostrar la tarea.');
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Task $task)
     {
-        $this->authorize('update', $task);
-        $title = 'Editar Tarea ';
-        $statuses = TaskStatus::all();
-        return view('tasks.edit', compact('task', 'title', 'statuses'));
+        try {
+            $this->authorize('update', $task);
+            $title = 'Editar Tarea ';
+            $statuses = TaskStatus::all();
+            return view('tasks.edit', compact('task', 'title', 'statuses'));
+        } catch (\Exception $e) {
+            Log::error('Error al cargar el formulario de edición de tareas: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al cargar el formulario.');
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Task $task): RedirectResponse
     {
-        $this->authorize('update', $task);
+        try {
+            $this->authorize('update', $task);
 
+            $validated = $request->validate([
+                'title' => ['required', 'string', 'min:3', 'max:255'],
+                'body' => ['required', 'string', 'min:5', 'max:255'],
+                'task_status_id' => ['required', 'exists:task_statuses,id'],
+            ]);
 
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'min:3', 'max:255'],
-            'body' => ['required', 'string', 'min:5', 'max:255'],
-            'task_status_id' => ['required', 'exists:task_statuses,id'],
-        ]);
-
-        $task->update($validated);
-        return redirect(route('tasks.index'))->with('success', 'Tarea actualizada con éxito');
+            $task->update($validated);
+            return redirect(route('tasks.index'))->with('success', 'Tarea actualizada con éxito');
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar tarea: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al actualizar la tarea.');
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Task $task)
     {
-        // Asegurarse de que el usuario es el propietario de la tarea
-        $this->authorize('delete', $task);
+        try {
+            $this->authorize('delete', $task);
 
-        if (auth()->user()->id === $task->user_id) {
-            //Aplicar delete lógico para preservar el registro
-            $task->is_active = false;
-            $task->save();
+            if (auth()->user()->id === $task->user_id) {
+                $task->is_active = false;
+                $task->save();
 
-            return redirect(route('tasks.index'))->with('success', 'Tarea eliminada con éxito');
-
-        } else {
-            return redirect(route('tasks.index'))->with('error', 'No tienes permisos para eliminar esta tarea');
+                return redirect(route('tasks.index'))->with('success', 'Tarea eliminada con éxito');
+            } else {
+                return redirect(route('tasks.index'))->with('error', 'No tienes permisos para eliminar esta tarea');
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar tarea: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al eliminar la tarea.');
         }
-
-        // Borrar el registro de la DB
-        // $task->delete();
-        // return redirect()->route('tasks.index')->with('success','Tarea eliminada con éxito');
     }
 }

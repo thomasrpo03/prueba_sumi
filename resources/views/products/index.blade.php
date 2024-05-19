@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 p-4">
-        @session('success')
+        @if (session('success'))
             <div x-data="{ isOpen: true }" x-show="isOpen" x-cloak
                 class="relative flex flex-col sm:flex-row sm:items-center bg-gray-300 dark:bg-green-700 shadow rounded-md py-5 pl-6 pr-8 sm:pr-6 mb-3 mt-3">
                 <div class="flex flex-row items-center border-b sm:border-b-0 w-full sm:w-auto pb-4 sm:pb-0">
@@ -17,7 +17,7 @@
                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                     </div>
-                    <div class="text-sm font-medium ml-3 dark:text-gray-100">Tarea Creada!</div>
+                    <div class="text-sm font-medium ml-3 dark:text-gray-100">Éxito!</div>
                 </div>
                 <div class="text-sm tracking-wide text-gray-500 dark:text-white mt-4 sm:mt-0 sm:ml-4">
                     {{ session('success') }}
@@ -28,10 +28,36 @@
                         stroke="currentColor" class="w-4 h-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
-
                 </div>
             </div>
-        @endsession
+        @endif
+
+        @if (session('error'))
+            <div x-data="{ isOpen: true }" x-show="isOpen" x-cloak
+                class="relative flex flex-col sm:flex-row sm:items-center bg-red-300 dark:bg-red-700 shadow rounded-md py-5 pl-6 pr-8 sm:pr-6 mb-3 mt-3">
+                <div class="flex flex-row items-center border-b sm:border-b-0 w-full sm:w-auto pb-4 sm:pb-0">
+                    <div class="text-gray-300" dark:text-gray-500>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3m0 0h.01M12 12v3m0 0h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                    <div class="text-sm font-medium ml-3 dark:text-gray-100">Error!</div>
+                </div>
+                <div class="text-sm tracking-wide text-gray-500 dark:text-white mt-4 sm:mt-0 sm:ml-4">
+                    {{ session('error') }}
+                </div>
+                <div @click="isOpen = false"
+                    class="absolute sm:relative sm:top-auto sm:right-auto ml-auto right-4 top-4 text-gray-400 hover:text-gray-800 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+        @endif
+
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100">{{ __('Lista de Productos') }}</h2>
             <x-primary-link href="{{ route('products.create') }}" class="inline-flex gap-2 items-center justify-center">
@@ -55,7 +81,6 @@
                             stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
-
                     </a>
                 @endif
                 <x-primary-button class="ml-2">

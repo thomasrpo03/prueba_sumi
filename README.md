@@ -15,7 +15,7 @@ Este es un proyecto de demostración para una prueba técnica utilizando Laravel
 
 ```bash
 git clone https://github.com/thomasrpo03/prueba_sumi.git
-cd tu-repositorio
+cd prueba_sumi
 ```
 
 ### Paso 2: Instalar las dependencias

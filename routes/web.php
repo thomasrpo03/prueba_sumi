@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+//Rutas para los productos
+Route::resource('products', ProductController::class)->middleware(['auth', 'verified']);
+
+//Rutas para las tareas
 Route::resource('tasks', TaskController::class)->middleware(['auth', 'verified']);
 
 require __DIR__ . '/auth.php';

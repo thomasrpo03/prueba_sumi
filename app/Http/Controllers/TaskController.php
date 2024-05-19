@@ -13,10 +13,14 @@ class TaskController extends Controller
     public function index()
     {
         $title = 'Mis Tareas ';
-        // Traer todas las tareas propias del usuario
-        $tasks = Task::whereUserId(auth()->id())->latest()->paginate(5);
+        // Traer todas las tareas propias del usuario que están activas
+        $tasks = Task::whereUserId(auth()->id())
+            ->where('is_active', true)
+            ->latest()
+            ->paginate(5);
         return view('tasks.index', compact('tasks', 'title'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -81,7 +85,7 @@ class TaskController extends Controller
         ]);
 
         $task->update($validated);
-        return redirect(route('tasks.index'))->with('success','Tarea actualizada con éxito');
+        return redirect(route('tasks.index'))->with('success', 'Tarea actualizada con éxito');
     }
 
     /**
@@ -89,8 +93,22 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $this-> authorize('delete', $task);
-        $task->delete();
-        return redirect()->route('tasks.index')->with('success','Tarea eliminada con éxito');
+        // Asegurarse de que el usuario es el propietario de la tarea
+        $this->authorize('delete', $task);
+
+        if (auth()->user()->id === $task->user_id) {
+            //Aplicar delete lógico para preservar el registro
+            $task->is_active = false;
+            $task->save();
+
+            return redirect(route('tasks.index'))->with('success', 'Tarea eliminada con éxito');
+
+        } else {
+            return redirect(route('tasks.index'))->with('error', 'No tienes permisos para eliminar esta tarea');
+        }
+
+        // Borrar el registro de la DB
+        // $task->delete();
+        // return redirect()->route('tasks.index')->with('success','Tarea eliminada con éxito');
     }
 }

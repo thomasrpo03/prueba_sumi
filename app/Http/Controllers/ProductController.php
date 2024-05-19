@@ -9,16 +9,28 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::where('is_active', true)->with('category')->latest()->paginate(5);
-        return view('products.index', compact('products'));
+        $title = 'Listado de Productos ';
+        // $products = Product::where('is_active', true)->with('category')->latest()->paginate(5);
+        // return view('products.index', compact('products', 'title'));
+
+        $query = Product::where('is_active', true)->latest();
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
+        $products = $query->paginate(5);
+
+        return view('products.index', compact('products', 'title'));
     }
 
     public function create()
     {
+        $title = 'Nuevo producto ';
         $categories = Category::all();
-        return view('products.create', compact('categories'));
+        return view('products.create', compact('categories', 'title'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -37,13 +49,15 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        return view('products.show', compact('product'));
+        $title = 'Detalles de ' . $product->name . ' ';
+        return view('products.show', compact('product', 'title'));
     }
 
     public function edit(Product $product)
     {
+        $title = 'Editar ' . $product->name . ' ';
         $categories = Category::all();
-        return view('products.edit', compact('product', 'categories'));
+        return view('products.edit', compact('product', 'categories', 'title'));
     }
 
     public function update(Request $request, Product $product): RedirectResponse
@@ -52,7 +66,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'string', 'exists:categories,id'],
-            'price' => ['required', 'string', 'min:0','max:999999.99'],
+            'price' => ['required', 'string', 'min:0', 'max:999999.99'],
         ]);
 
         $product->update($validated);

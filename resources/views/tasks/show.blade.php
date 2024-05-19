@@ -11,7 +11,7 @@
             <div class="p-6">
                 <h2 class="text-2xl font-extrabold uppercase text-gray-800 dark:text-white">{{ $task->title }}</h2>
                 <p class="text-gray-600 dark:text-gray-300 mt-2">{{ $task->body }}</p>
-            </div>`
+            </div>
             @if ($task->user->is(auth()->user()))
                 <div class="flex justify-end p-4 bg-gray-100 dark:bg-gray-700 gap-2">
                     <x-primary-link href="{{ route('tasks.edit', $task) }}">{{ __('Editar') }}</x-primary-link>
